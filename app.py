@@ -1,121 +1,119 @@
-from flask import Flask, render_template, request, send_file, jsonify, session
+from flask import Flask, request, send_file, jsonify, render_template
+from flask_cors import CORS
 import pandas as pd
 import os
-from datetime import timedelta
+import tempfile
+from openpyxl import load_workbook
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # Keep session alive for 1 hour
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+CORS(app)
 
-@app.route('/')
+UPLOAD_FOLDER = tempfile.gettempdir()
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+excel_data = {}  # Cache data in memory
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"})
+@app.route("/upload", methods=["POST"])
+def upload():
+    file = request.files["file"]
+    if file and file.filename.endswith((".xlsx", ".xls")):
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        file.save(filepath)
+        xls = pd.ExcelFile(filepath)
+        excel_data[file.filename] = {"path": filepath, "sheets": {}}
+        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xls.sheet_names})
+    return jsonify({"error": "Invalid file format"}), 400
+
+from openpyxl.utils import column_index_from_string
+
+@app.route("/edit", methods=["GET"])
+def edit():
+    filename = request.args.get("filename")
+    sheet_name = request.args.get("sheet")
+    file_info = excel_data.get(filename)
+
+    if not file_info or not os.path.exists(file_info["path"]):
+        return jsonify({"error": "File not found"}), 404
+
+    wb = load_workbook(file_info["path"], data_only=True)
+    if sheet_name not in wb.sheetnames:
+        return jsonify({"error": "Sheet not found"}), 404
+
+    ws = wb[sheet_name]
+    data = list(ws.values)
     
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"})
-    
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(file_path)
+    if not data or not data[0]:
+        return jsonify({"error": "No data found"}), 404
 
-    session['file_path'] = file_path
-    session['filename'] = os.path.splitext(file.filename)[0]  # Store filename without extension
-    session['file_type'] = file.filename.rsplit('.', 1)[-1]  # Store file type
-    session['modified_filename'] = session['filename']  # Default modified filename
-    session['modified_file_type'] = session['file_type']  # Default file type
-    session.permanent = True  # Ensure session persists
+    headers = list(data[0])
+    rows = data[1:]
+    df = pd.DataFrame(rows, columns=headers)
+    df.fillna("", inplace=True)
 
-    return process_file(file_path)
+    # Extract dropdowns using accurate column mapping
+    dropdowns = {}
+    for dv in ws.data_validations.dataValidation:
+        if dv.formula1 and dv.type == "list":
+            try:
+                start_cell = dv.sqref.split(":")[0]
+                col_letter = ''.join(filter(str.isalpha, start_cell))
+                col_idx = column_index_from_string(col_letter) - 1
+                if 0 <= col_idx < len(headers):
+                    header = headers[col_idx]
+                    dropdowns[str(header)] = dv.formula1.replace('"', '').split(',')
+            except Exception as e:
+                print(f"Dropdown parse error: {e}")
 
-def process_file(file_path, selected_sheet=None):
-    try:
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
-            file_type = 'csv'
-            sheets = None  
-        else:
-            excel_file = pd.ExcelFile(file_path)
-            sheets = excel_file.sheet_names
-            file_type = 'xlsx'
-            
-            if selected_sheet is None:
-                selected_sheet = sheets[0]  
+    return jsonify({
+        "columns": headers,
+        "data": df.to_dict(orient="records"),
+        "dropdowns": dropdowns
+    })
 
-            df = excel_file.parse(selected_sheet)
-
-        df.fillna("", inplace=True)
-        return jsonify({
-            "data": df.to_dict(orient='records'),
-            "file_type": file_type,
-            "sheets": sheets,
-            "selected_sheet": selected_sheet
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
-@app.route('/load_sheet', methods=['POST'])
-def load_sheet():
+@app.route("/save", methods=["POST"])
+def save():
     data = request.json
-    file_path = os.path.join(UPLOAD_FOLDER, data.get('filename'))
-    selected_sheet = data.get('sheet_name')
+    filename = data.get("filename")
+    sheet_name = data.get("sheet")
+    edited_data = data.get("data")
 
-    return process_file(file_path, selected_sheet)
+    if filename not in excel_data:
+        return jsonify({"error": "File not found"}), 404
 
-@app.route('/update', methods=['POST'])
-def update_file():
-    try:
-        data = request.json['data']
-        file_type = request.json.get('file_type', session.get('file_type', 'csv'))
-        filename = request.json.get('filename', session.get('filename'))  # User-defined filename
-        sheet_name = request.json.get('sheet_name', 'Sheet1')
+    filepath = excel_data[filename]["path"]
+    wb = load_workbook(filepath)
+    if sheet_name not in wb.sheetnames:
+        return jsonify({"error": "Sheet not found"}), 404
 
-        if not filename:
-            return jsonify({"error": "Filename is required"}), 400
+    ws = wb[sheet_name]
 
-        # Update session variables
-        session['modified_filename'] = filename
-        session['modified_file_type'] = file_type
-        session.permanent = True  # Ensure session persists
+    # Clear values only (preserve validations)
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
+        for cell in row:
+            cell.value = None
 
-        file_path = os.path.join(UPLOAD_FOLDER, f'{filename}.{file_type}')
-        df = pd.DataFrame(data)
+    df = pd.DataFrame(edited_data)
+    for i, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
+        for j, val in enumerate(row, start=1):
+            ws.cell(row=i, column=j).value = val
 
-        if file_type == 'csv':
-            df.to_csv(file_path, index=False)
-        else:
-            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
+    wb.save(filepath)
+    return jsonify({"message": "Saved successfully"})
 
-        print(f"✅ File saved successfully: {file_path}")  # Debugging log
-        print(f"📝 Stored filename in session: {session.get('modified_filename')}")
-        print(f"📂 Available files after update: {os.listdir(UPLOAD_FOLDER)}")
-        
-        return jsonify({"message": "File updated successfully!", "file_path": file_path, "filename": filename, "file_type": file_type})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+@app.route("/download", methods=["GET"])
+def download():
+    filename = request.args.get("filename")
+    custom_name = request.args.get("custom_name", "Edited_File.xlsx")
+    if filename in excel_data:
+        filepath = excel_data[filename]["path"]
+        return send_file(filepath, as_attachment=True, download_name=custom_name)
+    return jsonify({"error": "File not found"}), 404
 
-@app.route('/download', methods=['GET'])
-def download_file():
-    filename = session.get('modified_filename')
-    file_type = session.get('modified_file_type', 'csv')
-    file_path = os.path.join(UPLOAD_FOLDER, f'{filename}.{file_type}')
-
-    print(f"🔍 Checking for file: {file_path}")
-    print(f"📂 Available files: {os.listdir(UPLOAD_FOLDER)}")
-
-    if not os.path.exists(file_path):
-        print(f"❌ File not found! Path checked: {file_path}")
-        return jsonify({"error": f"File '{filename}.{file_type}' not found. Ensure you have updated before downloading."}), 404
-
-    print(f"📥 Downloading file: {file_path}")
-    return send_file(file_path, as_attachment=True, download_name=f'{filename}.{file_type}')
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
