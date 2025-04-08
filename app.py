@@ -98,7 +98,11 @@ def save():
         for cell in row:
             cell.value = None
 
-    df = pd.DataFrame(edited_data)
+    # Ensure DataFrame column order matches original Excel
+    original_headers = [cell.value for cell in ws[1]]
+    df = pd.DataFrame(edited_data)[original_headers]
+    
+    # Write edited data in the original structure
     for i, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
         for j, val in enumerate(row, start=1):
             ws.cell(row=i, column=j).value = val
