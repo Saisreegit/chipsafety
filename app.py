@@ -6,6 +6,7 @@ import tempfile
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.utils import column_index_from_string
 
 app = Flask(__name__)
 CORS(app)
@@ -101,6 +102,17 @@ def save():
     # Ensure DataFrame column order matches original Excel
     original_headers = [cell.value for cell in ws[1]]
     df = pd.DataFrame(edited_data)[original_headers]
+
+     # Create DataFrame from edited data
+    df = pd.DataFrame(edited_data)
+    df.columns = [col.strip() if isinstance(col, str) else col for col in df.columns]
+
+    # Drop completely empty rows
+    df.dropna(how='all', inplace=True)
+
+    # Reorder columns to match original
+    df = df[[col for col in original_headers if col in df.columns]]
+
     
     # Write edited data in the original structure
     for i, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
