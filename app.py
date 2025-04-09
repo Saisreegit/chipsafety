@@ -5,8 +5,8 @@ import os
 import tempfile
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.utils import column_index_from_string
+from openpyxl.utils.dataframe import dataframe_to_rows, column_index_from_string
+import mysql.connector
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +15,20 @@ UPLOAD_FOLDER = tempfile.gettempdir()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 excel_data = {}  # Cache data in memory
+
+# Environment variables for database connection
+DB_HOST = os.getenv("DB_HOST", "your-host")
+DB_USER = os.getenv("DB_USER", "your-username")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "your-password")
+DB_NAME = os.getenv("DB_NAME", "excel_logs")
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
 
 @app.route("/")
 def index():
@@ -31,8 +45,6 @@ def upload():
         return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xls.sheet_names})
     return jsonify({"error": "Invalid file format"}), 400
 
-from openpyxl.utils import column_index_from_string
-
 @app.route("/edit", methods=["GET"])
 def edit():
     filename = request.args.get("filename")
@@ -48,7 +60,7 @@ def edit():
 
     ws = wb[sheet_name]
     data = list(ws.values)
-    
+
     if not data or not data[0]:
         return jsonify({"error": "No data found"}), 404
 
@@ -57,7 +69,6 @@ def edit():
     df = pd.DataFrame(rows, columns=headers)
     df.fillna("", inplace=True)
 
-    # Extract dropdowns using accurate column mapping
     dropdowns = {}
     for dv in ws.data_validations.dataValidation:
         if dv.formula1 and dv.type == "list":
@@ -94,32 +105,43 @@ def save():
 
     ws = wb[sheet_name]
 
-    # Clear values only (preserve validations)
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
         for cell in row:
             cell.value = None
 
-    # Ensure DataFrame column order matches original Excel
     original_headers = [cell.value for cell in ws[1]]
     df = pd.DataFrame(edited_data)[original_headers]
-
-     # Create DataFrame from edited data
-    df = pd.DataFrame(edited_data)
     df.columns = [col.strip() if isinstance(col, str) else col for col in df.columns]
-
-    # Drop completely empty rows
     df.dropna(how='all', inplace=True)
-
-    # Reorder columns to match original
     df = df[[col for col in original_headers if col in df.columns]]
 
-    
-    # Write edited data in the original structure
     for i, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
         for j, val in enumerate(row, start=1):
             ws.cell(row=i, column=j).value = val
 
     wb.save(filepath)
+
+    # Log to DB
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS file_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                filename VARCHAR(255),
+                sheet_name VARCHAR(255),
+                status VARCHAR(50),
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("INSERT INTO file_logs (filename, sheet_name, status) VALUES (%s, %s, %s)",
+                       (filename, sheet_name, 'saved'))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print("DB Log Error:", e)
+
     return jsonify({"message": "Saved successfully"})
 
 @app.route("/download", methods=["GET"])
