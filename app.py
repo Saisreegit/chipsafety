@@ -3,10 +3,12 @@ from flask_cors import CORS
 import pandas as pd
 import os
 import tempfile
+from datetime import datetime
+import mysql.connector
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.dataframe import dataframe_to_rows, column_index_from_string
-import mysql.connector
+from openpyxl.utils import column_index_from_string
 
 app = Flask(__name__)
 CORS(app)
@@ -29,7 +31,29 @@ def get_db_connection():
         password=DB_PASSWORD,
         database=DB_NAME
     )
-
+def log_to_database(filename, sheet_name):
+    print("Logging to DB:", filename, sheet_name)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS file_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                filename VARCHAR(255),
+                sheet_name VARCHAR(255),
+                status VARCHAR(50),
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("INSERT INTO file_logs (filename, sheet_name, status) VALUES (%s, %s, %s)",
+                       (filename, sheet_name, 'saved'))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ DB log inserted")
+    except Exception as e:
+        print("DB Log Error:", e)
+        
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -120,27 +144,9 @@ def save():
             ws.cell(row=i, column=j).value = val
 
     wb.save(filepath)
-
-    # Log to DB
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS file_logs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                filename VARCHAR(255),
-                sheet_name VARCHAR(255),
-                status VARCHAR(50),
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cursor.execute("INSERT INTO file_logs (filename, sheet_name, status) VALUES (%s, %s, %s)",
-                       (filename, sheet_name, 'saved'))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        print("DB Log Error:", e)
+    
+    #Log to AWS RDS
+    log_to_database(filename, sheet_name)
 
     return jsonify({"message": "Saved successfully"})
 
