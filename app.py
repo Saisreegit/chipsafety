@@ -3,11 +3,8 @@ from flask_cors import CORS
 import pandas as pd
 import os
 import tempfile
-from datetime import datetime
-import mysql.connector
 from openpyxl import load_workbook
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.utils.dataframe import dataframe_to_rows, column_index_from_string
+from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.utils import column_index_from_string
 
 app = Flask(__name__)
@@ -18,42 +15,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 excel_data = {}  # Cache data in memory
 
-# Environment variables for database connection
-DB_HOST = os.getenv("DB_HOST", "your-host")
-DB_USER = os.getenv("DB_USER", "your-username")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "your-password")
-DB_NAME = os.getenv("DB_NAME", "excel_logs")
-
-def get_db_connection():
-    return mysql.connector.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME
-    )
-def log_to_database(filename, sheet_name):
-    print("Logging to DB:", filename, sheet_name)
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS file_logs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                filename VARCHAR(255),
-                sheet_name VARCHAR(255),
-                status VARCHAR(50),
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cursor.execute("INSERT INTO file_logs (filename, sheet_name, status) VALUES (%s, %s, %s)",
-                       (filename, sheet_name, 'saved'))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        print("✅ DB log inserted")
-    except Exception as e:
-        print("DB Log Error:", e)
-        
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -84,7 +45,7 @@ def edit():
 
     ws = wb[sheet_name]
     data = list(ws.values)
-
+    
     if not data or not data[0]:
         return jsonify({"error": "No data found"}), 404
 
@@ -129,25 +90,23 @@ def save():
 
     ws = wb[sheet_name]
 
+    # Get headers from first row
+    headers = [cell.value for cell in ws[1]]
+    header_index_map = {header: idx + 1 for idx, header in enumerate(headers)}
+
+    # Clear only cell values from row 2 onwards
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
         for cell in row:
             cell.value = None
 
-    original_headers = [cell.value for cell in ws[1]]
-    df = pd.DataFrame(edited_data)[original_headers]
-    df.columns = [col.strip() if isinstance(col, str) else col for col in df.columns]
-    df.dropna(how='all', inplace=True)
-    df = df[[col for col in original_headers if col in df.columns]]
-
-    for i, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
-        for j, val in enumerate(row, start=1):
-            ws.cell(row=i, column=j).value = val
+    # Write updated data row by row (preserving formatting)
+    for row_idx, row_data in enumerate(edited_data, start=2):
+        for col_name, value in row_data.items():
+            col_idx = header_index_map.get(col_name)
+            if col_idx:
+                ws.cell(row=row_idx, column=col_idx).value = value
 
     wb.save(filepath)
-    
-    #Log to AWS RDS
-    log_to_database(filename, sheet_name)
-
     return jsonify({"message": "Saved successfully"})
 
 @app.route("/download", methods=["GET"])
