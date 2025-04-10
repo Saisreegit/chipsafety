@@ -90,23 +90,23 @@ def save():
 
     ws = wb[sheet_name]
 
-    # Get headers from first row
+    # Get headers from first row (original order)
     headers = [cell.value for cell in ws[1]]
     header_index_map = {header: idx + 1 for idx, header in enumerate(headers) if header is not None}
 
-    # Clear only cell values from row 2 onwards
+    # Clear only the values (leave formatting, dropdowns, styles)
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
         for cell in row:
             cell.value = None
 
-    # Write updated data row by row (preserving formatting)
+    # Fill data row by row using original header positions
     for row_idx, row_data in enumerate(edited_data, start=2):
         for header in headers:
-            col_idx = header_index_map.get(col_name)
+            col_idx = header_index_map.get(header)
             if col_idx:
-               value = row_data.get(header, "")
+                value = row_data.get(header, "")
                 ws.cell(row=row_idx, column=col_idx).value = value
-                
+
     wb.save(filepath)
     return jsonify({"message": "Saved successfully"})
 
