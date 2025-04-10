@@ -92,7 +92,7 @@ def save():
 
     # Get headers from first row
     headers = [cell.value for cell in ws[1]]
-    header_index_map = {header: idx + 1 for idx, header in enumerate(headers)}
+    header_index_map = {header: idx + 1 for idx, header in enumerate(headers) if header is not None}
 
     # Clear only cell values from row 2 onwards
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
@@ -101,11 +101,12 @@ def save():
 
     # Write updated data row by row (preserving formatting)
     for row_idx, row_data in enumerate(edited_data, start=2):
-        for col_name, value in row_data.items():
+        for header in headers:
             col_idx = header_index_map.get(col_name)
             if col_idx:
+               value = row_data.get(header, "")
                 ws.cell(row=row_idx, column=col_idx).value = value
-
+                
     wb.save(filepath)
     return jsonify({"message": "Saved successfully"})
 
