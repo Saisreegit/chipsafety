@@ -4,8 +4,7 @@ import pandas as pd
 import os
 import tempfile
 from openpyxl import load_workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.utils import column_index_from_string
+from openpyxl.utils import range_boundaries
 
 app = Flask(__name__)
 CORS(app)
@@ -13,7 +12,7 @@ CORS(app)
 UPLOAD_FOLDER = tempfile.gettempdir()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-excel_data = {}  # Cache data in memory
+excel_data = {}  # Cache for uploaded Excel files
 
 @app.route("/")
 def index():
@@ -25,50 +24,38 @@ def upload():
     if file and file.filename.endswith((".xlsx", ".xls")):
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
         file.save(filepath)
-        xls = pd.ExcelFile(filepath)
-        excel_data[file.filename] = {"path": filepath, "sheets": {}}
-        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xls.sheet_names})
+        excel_data[file.filename] = {"path": filepath}
+        xl = pd.ExcelFile(filepath)
+        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xl.sheet_names})
     return jsonify({"error": "Invalid file format"}), 400
 
 @app.route("/edit", methods=["GET"])
 def edit():
     filename = request.args.get("filename")
-    sheet_name = request.args.get("sheet")
+    sheet = request.args.get("sheet")
     file_info = excel_data.get(filename)
 
     if not file_info or not os.path.exists(file_info["path"]):
         return jsonify({"error": "File not found"}), 404
 
-    wb = load_workbook(file_info["path"], data_only=True)
-    if sheet_name not in wb.sheetnames:
-        return jsonify({"error": "Sheet not found"}), 404
-
-    ws = wb[sheet_name]
-    data = list(ws.values)
-    
-    if not data or not data[0]:
-        return jsonify({"error": "No data found"}), 404
-
-    headers = list(data[0])
-    rows = data[1:]
-    df = pd.DataFrame(rows, columns=headers)
-    df.fillna("", inplace=True)
+    df = pd.read_excel(file_info["path"], sheet_name=sheet, dtype=str).fillna("")
+    wb = load_workbook(file_info["path"])
+    ws = wb[sheet]
 
     dropdowns = {}
-    for dv in ws.data_validations.dataValidation:
-        if dv.formula1 and dv.type == "list":
-            try:
-                start_cell = dv.sqref.split(":")[0]
-                col_letter = ''.join(filter(str.isalpha, start_cell))
-                col_idx = column_index_from_string(col_letter) - 1
-                if 0 <= col_idx < len(headers):
-                    header = headers[col_idx]
-                    dropdowns[str(header)] = dv.formula1.replace('"', '').split(',')
-            except Exception as e:
-                print(f"Dropdown parse error: {e}")
+    if ws.data_validations:
+        for dv in ws.data_validations.dataValidation:
+            if dv.type == "list" and dv.formula1:
+                options = dv.formula1.strip('"').split(",")
+                for cell_range in dv.sqref.ranges:
+                    min_col, min_row, max_col, max_row = range_boundaries(str(cell_range))
+                    for row in ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+                        for cell in row:
+                            coord = cell.coordinate
+                            dropdowns[coord] = options
 
     return jsonify({
-        "columns": headers,
+        "columns": df.columns.tolist(),
         "data": df.to_dict(orient="records"),
         "dropdowns": dropdowns
     })
@@ -77,37 +64,18 @@ def edit():
 def save():
     data = request.json
     filename = data.get("filename")
-    sheet_name = data.get("sheet")
+    sheet = data.get("sheet")
     edited_data = data.get("data")
 
     if filename not in excel_data:
         return jsonify({"error": "File not found"}), 404
 
     filepath = excel_data[filename]["path"]
-    wb = load_workbook(filepath)
-    if sheet_name not in wb.sheetnames:
-        return jsonify({"error": "Sheet not found"}), 404
+    df = pd.DataFrame(edited_data)
 
-    ws = wb[sheet_name]
+    with pd.ExcelWriter(filepath, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet)
 
-    # Get headers from first row (original order)
-    headers = [cell.value for cell in ws[1]]
-    header_index_map = {header: idx + 1 for idx, header in enumerate(headers) if header is not None}
-
-    # Clear only the values (leave formatting, dropdowns, styles)
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
-        for cell in row:
-            cell.value = None
-
-    # Fill data row by row using original header positions
-    for row_idx, row_data in enumerate(edited_data, start=2):
-        for header in headers:
-            col_idx = header_index_map.get(header)
-            if col_idx:
-                value = row_data.get(header, "")
-                ws.cell(row=row_idx, column=col_idx).value = value
-
-    wb.save(filepath)
     return jsonify({"message": "Saved successfully"})
 
 @app.route("/download", methods=["GET"])
