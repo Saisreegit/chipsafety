@@ -5,7 +5,7 @@
   <title>Excel Editor</title>
   <style>
     body { font-family: sans-serif; text-align: center; background: #f0f0f0; }
-    .container { background: white; padding: 20px; margin: 40px auto; width: 80%; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
+    .container { background: white; padding: 20px; margin: 40px auto; width: 90%; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #aaa; padding: 8px; }
     input, select { width: 100%; border: none; background: transparent; text-align: center; }
@@ -31,92 +31,95 @@
     <div id="editor"></div>
   </div>
 
-<script>
-  let fileName = "", currentSheet = "", currentData = [], allSheets = {};
+  <script>
+    let fileName = "", currentSheet = "", currentData = [], currentDropdowns = {};
 
-  document.getElementById("uploadForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    const file = document.getElementById("fileInput").files[0];
-    const formData = new FormData();
-    formData.append("file", file);
+    document.getElementById("uploadForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const file = document.getElementById("fileInput").files[0];
+      const formData = new FormData();
+      formData.append("file", file);
 
-    fetch("/upload", { method: "POST", body: formData })
-      .then(res => res.json())
-      .then(data => {
-        fileName = data.filename;
-        const selector = document.getElementById("sheetSelector");
-        selector.innerHTML = "";
+      fetch("/upload", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+          fileName = data.filename;
+          const selector = document.getElementById("sheetSelector");
+          selector.innerHTML = "";
 
-        data.sheets.forEach((sheet, idx) => {
-          const opt = document.createElement("option");
-          opt.value = sheet;
-          opt.textContent = sheet;
-          selector.appendChild(opt);
-        });
-
-        document.getElementById("sheetControls").style.display = "block";
-        selector.selectedIndex = 0;
-        loadSheet(); // Display first sheet
-      });
-  });
-
-  function loadSheet() {
-    const sheet = document.getElementById("sheetSelector").value;
-    currentSheet = sheet;
-
-    fetch(`/edit?filename=${fileName}&sheet=${sheet}`)
-      .then(res => res.json())
-      .then(data => {
-        currentData = data.data;
-        renderTable(data.columns, data.data, data.dropdowns || {});
-      });
-  }
-
-  function renderTable(columns, data, dropdowns) {
-    let html = "<table><tr>";
-    columns.forEach(col => html += `<th>${col}</th>`);
-    html += "</tr>";
-
-    data.forEach((row, rowIndex) => {
-      html += "<tr>";
-      columns.forEach(col => {
-        const val = row[col] || "";
-        if (dropdowns[col]) {
-          html += `<td><select onchange="updateCell(${rowIndex}, '${col}', this.value)">`;
-          dropdowns[col].forEach(opt => {
-            const selected = opt === val ? "selected" : "";
-            html += `<option value="${opt}" ${selected}>${opt}</option>`;
+          data.sheets.forEach(sheet => {
+            const opt = document.createElement("option");
+            opt.value = sheet;
+            opt.textContent = sheet;
+            selector.appendChild(opt);
           });
-          html += `</select></td>`;
-        } else {
-          html += `<td><input type="text" value="${val}" oninput="updateCell(${rowIndex}, '${col}', this.value)"/></td>`;
-        }
-      });
-      html += "</tr>";
+
+          document.getElementById("sheetControls").style.display = "block";
+          selector.selectedIndex = 0;
+          loadSheet(); // Load first sheet
+        });
     });
 
-    html += "</table>";
-    document.getElementById("editor").innerHTML = html;
-  }
+    function loadSheet() {
+      const sheet = document.getElementById("sheetSelector").value;
+      currentSheet = sheet;
 
-  function updateCell(row, col, value) {
-    currentData[row][col] = value;
-  }
+      fetch(`/edit?filename=${fileName}&sheet=${sheet}`)
+        .then(res => res.json())
+        .then(data => {
+          currentData = data.data;
+          currentDropdowns = data.dropdowns || {};
+          renderTable(data.columns, data.data);
+        });
+    }
 
-  function saveSheet() {
-    fetch("/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename: fileName, sheet: currentSheet, data: currentData })
-    })
-      .then(res => res.json())
-      .then(data => alert(data.message));
-  }
+    function renderTable(columns, data) {
+      let html = "<table><tr>";
+      columns.forEach(col => html += `<th>${col}</th>`);
+      html += "</tr>";
 
-  function downloadExcel() {
-    const name = prompt("Enter filename:", "Edited_File.xlsx");
-    if (name) window.location.href = `/download?filename=${fileName}&custom_name=${name}`;
-  }
-</script>
+      data.forEach((row, rowIndex) => {
+        html += "<tr>";
+        columns.forEach((col, colIndex) => {
+          const val = row[col] || "";
+          const coord = String.fromCharCode(65 + colIndex) + (rowIndex + 2);  // A2, B2, C2, etc.
+
+          if (currentDropdowns[coord]) {
+            html += `<td><select onchange="updateCell(${rowIndex}, '${col}', this.value)">`;
+            currentDropdowns[coord].forEach(option => {
+              const selected = option === val ? "selected" : "";
+              html += `<option value="${option}" ${selected}>${option}</option>`;
+            });
+            html += "</select></td>";
+          } else {
+            html += `<td><input type="text" value="${val}" oninput="updateCell(${rowIndex}, '${col}', this.value)"/></td>`;
+          }
+        });
+        html += "</tr>";
+      });
+
+      html += "</table>";
+      document.getElementById("editor").innerHTML = html;
+    }
+
+    function updateCell(row, col, value) {
+      currentData[row][col] = value;
+    }
+
+    function saveSheet() {
+      fetch("/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: fileName, sheet: currentSheet, data: currentData })
+      })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+    function downloadExcel() {
+      const name = prompt("Enter filename:", "Edited_File.xlsx");
+      if (name) window.location.href = `/download?filename=${fileName}&custom_name=${name}`;
+    }
+  </script>
 </body>
 </html>
