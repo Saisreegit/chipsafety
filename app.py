@@ -73,9 +73,20 @@ def save():
     filepath = excel_data[filename]["path"]
     df = pd.DataFrame(edited_data)
 
-    with pd.ExcelWriter(filepath, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-        df.to_excel(writer, index=False, sheet_name=sheet)
+    # Use openpyxl directly to write the data back to the Excel file
+    wb = load_workbook(filepath)
+    ws = wb[sheet]
 
+    # Clear the existing sheet and write the new data
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+        for cell in row:
+            cell.value = None
+
+    for r, row_data in enumerate(df.values, start=2):
+        for c, value in enumerate(row_data, start=1):
+            ws.cell(row=r, column=c, value=value)
+
+    wb.save(filepath)
     return jsonify({"message": "Saved successfully"})
 
 @app.route("/download", methods=["GET"])
