@@ -39,20 +39,38 @@ def edit():
         return jsonify({"error": "File not found"}), 404
 
     df = pd.read_excel(file_info["path"], sheet_name=sheet, dtype=str).fillna("")
-    wb = load_workbook(file_info["path"])
+    wb = load_workbook(file_info["path"], data_only=True)
     ws = wb[sheet]
 
     dropdowns = {}
     if ws.data_validations:
         for dv in ws.data_validations.dataValidation:
             if dv.type == "list" and dv.formula1:
-                options = dv.formula1.strip('"').split(",")
+                options = []
+                if dv.formula1.startswith("="):
+                    try:
+                        ref = dv.formula1.strip("=").replace('$', '')
+                        if "!" in ref:
+                            sheetname, ref = ref.split("!")
+                            target_ws = wb[sheetname]
+                        else:
+                            target_ws = ws
+
+                        min_col, min_row, max_col, max_row = range_boundaries(ref)
+                        for row in target_ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+                            for cell in row:
+                                if cell.value:
+                                    options.append(str(cell.value))
+                    except Exception:
+                        options = []
+                else:
+                    options = dv.formula1.strip('"').split(",")
+
                 for cell_range in dv.sqref.ranges:
                     min_col, min_row, max_col, max_row = range_boundaries(str(cell_range))
                     for row in ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
                         for cell in row:
-                            coord = cell.coordinate
-                            dropdowns[coord] = options
+                            dropdowns[cell.coordinate] = options
 
     return jsonify({
         "columns": df.columns.tolist(),
@@ -73,11 +91,10 @@ def save():
     filepath = excel_data[filename]["path"]
     df = pd.DataFrame(edited_data)
 
-    # Use openpyxl directly to write the data back to the Excel file
     wb = load_workbook(filepath)
     ws = wb[sheet]
 
-    # Clear the existing sheet and write the new data
+    # Clear existing rows (except header)
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
         for cell in row:
             cell.value = None
