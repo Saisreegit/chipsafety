@@ -38,45 +38,45 @@ def edit():
     if not file_info or not os.path.exists(file_info["path"]):
         return jsonify({"error": "File not found"}), 404
 
-    df = pd.read_excel(file_info["path"], sheet_name=sheet, dtype=str).fillna("")
-    wb = load_workbook(file_info["path"], data_only=True)
-    ws = wb[sheet]
+    try:
+        df = pd.read_excel(file_info["path"], sheet_name=sheet, dtype=str).fillna("")
+        wb = load_workbook(file_info["path"], data_only=True)
+        ws = wb[sheet]
 
-    dropdowns = {}
-    if ws.data_validations:
-        for dv in ws.data_validations.dataValidation:
-            if dv.type == "list" and dv.formula1:
-                options = []
-                if dv.formula1.startswith("="):
-                    try:
-                        ref = dv.formula1.strip("=").replace('$', '')
-                        if "!" in ref:
-                            sheetname, ref = ref.split("!")
-                            target_ws = wb[sheetname]
-                        else:
-                            target_ws = ws
-
-                        min_col, min_row, max_col, max_row = range_boundaries(ref)
-                        for row in target_ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-                            for cell in row:
-                                if cell.value:
+        dropdowns = {}
+        if ws.data_validations:
+            for dv in ws.data_validations.dataValidation:
+                if dv.type == "list":
+                    options = []
+                    if dv.formula1.startswith('"'):
+                        options = dv.formula1.strip('"').split(",")
+                    elif "!" in dv.formula1:  # Reference to another range
+                        try:
+                            sheet_ref, cell_range = dv.formula1.split("!")
+                            sheet_ref = sheet_ref.replace("=", "").replace("'", "")
+                            min_col, min_row, max_col, max_row = range_boundaries(cell_range.replace("$", ""))
+                            source_ws = wb[sheet_ref]
+                            for row in source_ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+                                for cell in row:
                                     options.append(str(cell.value))
-                    except Exception:
-                        options = []
-                else:
-                    options = dv.formula1.strip('"').split(",")
+                        except Exception as e:
+                            print("Dropdown reference error:", e)
+                    
+                    for cell_range in dv.sqref.ranges:
+                        min_col, min_row, max_col, max_row = range_boundaries(str(cell_range))
+                        for row in ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+                            for cell in row:
+                                coord = cell.coordinate
+                                dropdowns[coord] = options
 
-                for cell_range in dv.sqref.ranges:
-                    min_col, min_row, max_col, max_row = range_boundaries(str(cell_range))
-                    for row in ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-                        for cell in row:
-                            dropdowns[cell.coordinate] = options
-
-    return jsonify({
-        "columns": df.columns.tolist(),
-        "data": df.to_dict(orient="records"),
-        "dropdowns": dropdowns
-    })
+        return jsonify({
+            "columns": df.columns.tolist(),
+            "data": df.to_dict(orient="records"),
+            "dropdowns": dropdowns
+        })
+    except Exception as e:
+        print("Edit route error:", e)
+        return jsonify({"error": "Sheet parsing failed"}), 500
 
 @app.route("/save", methods=["POST"])
 def save():
