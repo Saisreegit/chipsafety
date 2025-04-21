@@ -1,0 +1,231 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Edit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        h2 {
+            color: #333;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        select {
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        td input {
+            border: none;
+            text-align: center;
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        td input:focus {
+            outline: none;
+            background: #eef4ff;
+        }
+        .button-container {
+            margin-top: 15px;
+        }
+    </style>
+    <script>
+        let tableData = {};
+        let currentSheet = "";
+        let uploadedFilename = "";
+        let fileType = "";
+        let sheets = [];
+
+        function uploadFile() {
+            let fileInput = document.getElementById("fileInput").files[0];
+            if (!fileInput) {
+                alert("Please select a file.");
+                return;
+            }
+            let formData = new FormData();
+            formData.append("file", fileInput);
+            fetch("/upload", { method: "POST", body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    uploadedFilename = fileInput.name;
+                    fileType = data.file_type;
+                    sheets = data.sheets || [];
+                    tableData = {};
+                    sheets.forEach(sheet => tableData[sheet] = []);
+                    if (sheets.length > 0) {
+                        currentSheet = sheets[0]; // Default to first sheet
+                        switchSheet();
+                    }
+                    populateSheetDropdown();
+                });
+        }
+
+        function populateSheetDropdown() {
+            let dropdownDiv = document.getElementById("sheetDropdown");
+            if (sheets.length === 0) {
+                dropdownDiv.innerHTML = "";
+                return;
+            }
+            let dropdown = `<label for='sheetSelect'>Select Sheet:</label>
+                            <select id='sheetSelect' onchange='switchSheet()'>`;
+            sheets.forEach(sheet => {
+                dropdown += `<option value='${sheet}'>${sheet}</option>`;
+            });
+            dropdown += "</select>";
+            dropdownDiv.innerHTML = dropdown;
+            document.getElementById("sheetSelect").value = currentSheet;
+        }
+
+        function switchSheet() {
+            saveCurrentSheetData(() => {
+                let selectedSheet = document.getElementById("sheetSelect").value;
+                currentSheet = selectedSheet;
+                fetch("/load_sheet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filename: uploadedFilename, sheet_name: selectedSheet })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    tableData[selectedSheet] = data.data;
+                    renderTable();
+                });
+            });
+        }
+
+        function renderTable() {
+            let headers = Object.keys(tableData[currentSheet][0] || {});
+            let table = "<table><tr>";
+            headers.forEach(header => table += `<th>${header}</th>`);
+            table += "</tr>";
+            tableData[currentSheet].forEach((row, rowIndex) => {
+                table += "<tr>";
+                headers.forEach(col => {
+                    table += `<td><input type='text' value='${row[col] || ""}' oninput='updateCell(${rowIndex}, "${col}", this.value)'></td>`;
+                });
+                table += "</tr>";
+            });
+            table += "</table>";
+            document.getElementById("tableDiv").innerHTML = table;
+        }
+
+        function updateCell(rowIndex, columnName, value) {
+            tableData[currentSheet][rowIndex][columnName] = value;
+        }
+
+        function saveCurrentSheetData(callback) {
+            fetch("/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    data: tableData[currentSheet],
+                    file_type: fileType,
+                    filename: uploadedFilename,
+                    sheet_name: currentSheet
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.error) alert(data.error);
+                  else console.log("Sheet updated successfully!");
+                  if (callback) callback();
+              });
+        }
+
+        function addRow() {
+            let headers = Object.keys(tableData[currentSheet][0] || {});
+            let newRow = {};
+            headers.forEach(header => newRow[header] = "");
+            tableData[currentSheet].push(newRow);
+            renderTable();
+        }
+
+        function addColumn() {
+            let columnName = prompt("Enter column name:");
+            if (!columnName) return;
+            tableData[currentSheet].forEach(row => row[columnName] = "");
+            renderTable();
+        }
+
+        function downloadFile() {
+            window.location.href = "/download";
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload and Edit CSV/Excel File</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload</button>
+        
+        <div id="sheetDropdown"></div>
+        
+        <div id="tableDiv"></div>
+        
+        <div class="button-container">
+            <button onclick="addRow()">Add Row</button>
+            <button onclick="addColumn()">Add Column</button>
+            <button onclick="saveCurrentSheetData()">Update</button>
+            <button onclick="downloadFile()">Download</button>
+        </div>
+    </div>
+</body>
+</html>
