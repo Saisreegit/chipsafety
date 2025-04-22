@@ -5,6 +5,22 @@ import os
 import tempfile
 from openpyxl import load_workbook
 from openpyxl.utils import range_boundaries
+from dotenv import load_dotenv
+import os
+import mysql.connector
+
+load_dotenv()  # Load .env
+
+db_config = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+    'port': int(os.getenv('DB_PORT', 3306))
+}
+
+conn = mysql.connector.connect(**db_config)
+cursor = conn.cursor()
 
 app = Flask(__name__)
 CORS(app)
