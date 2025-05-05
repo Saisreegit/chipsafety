@@ -4,31 +4,30 @@ import pandas as pd
 import os
 import tempfile
 from openpyxl import load_workbook
-from openpyxl.utils import range_boundaries
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.utils import column_index_from_string
 from dotenv import load_dotenv
-import os
 import mysql.connector
-
-load_dotenv()  # Load .env
-
-db_config = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME'),
-    'port': int(os.getenv('DB_PORT', 3306))
-}
-
-conn = mysql.connector.connect(**db_config)
-cursor = conn.cursor()
 
 app = Flask(__name__)
 CORS(app)
 
+# Load environment variables
+load_dotenv()
+
 UPLOAD_FOLDER = tempfile.gettempdir()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+excel_data = {}
 
-excel_data = {}  # Cache for uploaded Excel files
+# Database connection function
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS"),
+        database=os.getenv("DB_NAME")
+    )
 
 @app.route("/")
 def index():
@@ -40,84 +39,96 @@ def upload():
     if file and file.filename.endswith((".xlsx", ".xls")):
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
         file.save(filepath)
-        excel_data[file.filename] = {"path": filepath}
-        xl = pd.ExcelFile(filepath)
-        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xl.sheet_names})
+        xls = pd.ExcelFile(filepath)
+        excel_data[file.filename] = {"path": filepath, "sheets": xls.sheet_names}
+
+        # ✅ Insert filename into RDS table
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO test_logs (filename) VALUES (%s)", (file.filename,))
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            return jsonify({"error": f"DB insert failed: {e}"}), 500
+
+        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xls.sheet_names})
     return jsonify({"error": "Invalid file format"}), 400
 
 @app.route("/edit", methods=["GET"])
 def edit():
     filename = request.args.get("filename")
-    sheet = request.args.get("sheet")
+    sheet_name = request.args.get("sheet")
     file_info = excel_data.get(filename)
 
     if not file_info or not os.path.exists(file_info["path"]):
         return jsonify({"error": "File not found"}), 404
 
-    try:
-        df = pd.read_excel(file_info["path"], sheet_name=sheet, dtype=str).fillna("")
-        wb = load_workbook(file_info["path"], data_only=True)
-        ws = wb[sheet]
+    wb = load_workbook(file_info["path"], data_only=True)
+    if sheet_name not in wb.sheetnames:
+        return jsonify({"error": "Sheet not found"}), 404
 
-        dropdowns = {}
-        if ws.data_validations:
-            for dv in ws.data_validations.dataValidation:
-                if dv.type == "list":
-                    options = []
-                    if dv.formula1.startswith('"'):
-                        options = dv.formula1.strip('"').split(",")
-                    elif "!" in dv.formula1:  # Reference to another range
-                        try:
-                            sheet_ref, cell_range = dv.formula1.split("!")
-                            sheet_ref = sheet_ref.replace("=", "").replace("'", "")
-                            min_col, min_row, max_col, max_row = range_boundaries(cell_range.replace("$", ""))
-                            source_ws = wb[sheet_ref]
-                            for row in source_ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-                                for cell in row:
-                                    options.append(str(cell.value))
-                        except Exception as e:
-                            print("Dropdown reference error:", e)
-                    
-                    for cell_range in dv.sqref.ranges:
-                        min_col, min_row, max_col, max_row = range_boundaries(str(cell_range))
-                        for row in ws.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-                            for cell in row:
-                                coord = cell.coordinate
-                                dropdowns[coord] = options
+    ws = wb[sheet_name]
+    data = list(ws.values)
 
-        return jsonify({
-            "columns": df.columns.tolist(),
-            "data": df.to_dict(orient="records"),
-            "dropdowns": dropdowns
-        })
-    except Exception as e:
-        print("Edit route error:", e)
-        return jsonify({"error": "Sheet parsing failed"}), 500
+    if not data or not data[0]:
+        return jsonify({"error": "No data found"}), 404
+
+    headers = list(data[0])
+    rows = data[1:]
+    df = pd.DataFrame(rows, columns=headers)
+    df.fillna("", inplace=True)
+
+    dropdowns = {}
+    for dv in ws.data_validations.dataValidation:
+        if dv.formula1 and dv.type == "list":
+            try:
+                start_cell = dv.sqref.split(":")[0]
+                col_letter = ''.join(filter(str.isalpha, start_cell))
+                col_idx = column_index_from_string(col_letter) - 1
+                if 0 <= col_idx < len(headers):
+                    header = headers[col_idx]
+                    dropdowns[str(header)] = dv.formula1.replace('"', '').split(',')
+            except Exception as e:
+                print(f"Dropdown parse error: {e}")
+
+    return jsonify({
+        "columns": headers,
+        "data": df.to_dict(orient="records"),
+        "dropdowns": dropdowns
+    })
 
 @app.route("/save", methods=["POST"])
 def save():
     data = request.json
     filename = data.get("filename")
-    sheet = data.get("sheet")
+    sheet_name = data.get("sheet")
     edited_data = data.get("data")
 
     if filename not in excel_data:
         return jsonify({"error": "File not found"}), 404
 
     filepath = excel_data[filename]["path"]
-    df = pd.DataFrame(edited_data)
-
     wb = load_workbook(filepath)
-    ws = wb[sheet]
+    if sheet_name not in wb.sheetnames:
+        return jsonify({"error": "Sheet not found"}), 404
 
-    # Clear existing rows (except header)
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+    ws = wb[sheet_name]
+
+    headers = [cell.value for cell in ws[1]]
+    header_index_map = {header: idx + 1 for idx, header in enumerate(headers) if header is not None}
+
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
         for cell in row:
             cell.value = None
 
-    for r, row_data in enumerate(df.values, start=2):
-        for c, value in enumerate(row_data, start=1):
-            ws.cell(row=r, column=c, value=value)
+    for row_idx, row_data in enumerate(edited_data, start=2):
+        for header in headers:
+            col_idx = header_index_map.get(header)
+            if col_idx:
+                value = row_data.get(header, "")
+                ws.cell(row=row_idx, column=col_idx).value = value
 
     wb.save(filepath)
     return jsonify({"message": "Saved successfully"})
@@ -132,5 +143,4 @@ def download():
     return jsonify({"error": "File not found"}), 404
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
+    app.run(debug=True)
