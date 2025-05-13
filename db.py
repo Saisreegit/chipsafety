@@ -12,4 +12,3 @@ def get_db_connection():
         database=os.getenv("DB_NAME")
     )
     return connection
-
