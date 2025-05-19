@@ -5,15 +5,16 @@ import os
 import tempfile
 from openpyxl import load_workbook
 from openpyxl.utils import range_boundaries
-from db import insert_excel_data  # new
+from db import insert_excel_data  # make sure this works
 
 app = Flask(__name__)
 CORS(app)
 
-UPLOAD_FOLDER = tempfile.gettempdir()
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure folder exists
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-excel_data = {}  # Cache for uploaded Excel files
+excel_data = {}  # Cache for uploaded Excel files info
 
 @app.route("/")
 def index():
@@ -21,35 +22,28 @@ def index():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get["excel_file"]
+    # Expecting file input name to be "file" to keep consistent with frontend
+    file = request.files.get("file")
     if file and file.filename.endswith((".xlsx", ".xls")):
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
 
-        # Try loading the file
         try:
             wb = load_workbook(filepath)
             sheet = wb.active
-             # You can return or render the sheet data here
-            return f"<h2>Uploaded: {file.filename}</h2><p>First cell: {sheet.cell(1,1).value}</p>"
+            # Cache file info for later use
+            excel_data[file.filename] = {"path": filepath}
+
+            # Return some basic info for confirmation and frontend use
+            return jsonify({
+                "message": f"Uploaded: {file.filename}",
+                "filename": file.filename,
+                "first_cell": sheet.cell(1, 1).value or ""
+            })
         except Exception as e:
-            return f"Error reading Excel file: {e}"
+            return jsonify({"error": f"Error reading Excel file: {str(e)}"}), 400
 
-    return "Invalid file or no file uploaded."
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-
-    # Save the file or do processing here
-    file.save(f"./uploads/{file.filename}")
-
-    return jsonify({'message': 'File uploaded successfully'}), 200
+    return jsonify({"error": "Invalid file or no file uploaded."}), 400
 
 @app.route("/edit", methods=["GET"])
 def edit():
