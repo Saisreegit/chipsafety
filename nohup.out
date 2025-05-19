@@ -1,0 +1,418 @@
+[2025-05-14 04:55:06 +0000] [2487944] [INFO] Starting gunicorn 23.0.0
+[2025-05-14 04:55:06 +0000] [2487944] [INFO] Listening at: http://127.0.0.1:8000 (2487944)
+[2025-05-14 04:55:06 +0000] [2487944] [INFO] Using worker: sync
+[2025-05-14 04:55:06 +0000] [2487945] [INFO] Booting worker with pid: 2487945
+[2025-05-14 04:55:06 +0000] [2487946] [INFO] Booting worker with pid: 2487946
+[2025-05-14 04:55:06 +0000] [2487947] [INFO] Booting worker with pid: 2487947
+[2025-05-14 04:55:06 +0000] [2487948] [INFO] Booting worker with pid: 2487948
+[2025-05-14 04:58:37,051] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:37,054] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,416] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,421] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,430] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,435] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,668] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,697] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,881] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:38,916] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 04:58:39,897] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 05:04:14 +0000] [2487944] [ERROR] Worker (pid:2487945) was sent SIGHUP!
+[2025-05-14 05:04:14 +0000] [2487944] [ERROR] Worker (pid:2487946) was sent SIGHUP!
+[2025-05-14 05:04:14 +0000] [2487944] [ERROR] Worker (pid:2487947) was sent SIGHUP!
+[2025-05-14 05:04:14 +0000] [2487944] [ERROR] Worker (pid:2487948) was sent SIGHUP!
+[2025-05-14 05:04:14 +0000] [2488266] [INFO] Booting worker with pid: 2488266
+[2025-05-14 05:04:14 +0000] [2488265] [INFO] Booting worker with pid: 2488265
+[2025-05-14 05:04:14 +0000] [2488267] [INFO] Booting worker with pid: 2488267
+[2025-05-14 05:04:14 +0000] [2488268] [INFO] Booting worker with pid: 2488268
+[2025-05-14 05:04:14 +0000] [2487944] [INFO] Handling signal: hup
+[2025-05-14 05:04:14 +0000] [2487944] [INFO] Hang up: Master
+[2025-05-14 05:04:14 +0000] [2488269] [INFO] Booting worker with pid: 2488269
+[2025-05-14 05:04:14 +0000] [2488270] [INFO] Booting worker with pid: 2488270
+[2025-05-14 05:04:14 +0000] [2488271] [INFO] Booting worker with pid: 2488271
+[2025-05-14 05:04:14 +0000] [2488272] [INFO] Booting worker with pid: 2488272
+[2025-05-14 05:04:17 +0000] [2488265] [INFO] Worker exiting (pid: 2488265)
+[2025-05-14 05:04:17 +0000] [2488266] [INFO] Worker exiting (pid: 2488266)
+[2025-05-14 05:04:17 +0000] [2487944] [ERROR] Worker (pid:2488266) was sent SIGTERM!
+[2025-05-14 05:04:17 +0000] [2487944] [ERROR] Worker (pid:2488265) was sent SIGTERM!
+[2025-05-14 05:04:18 +0000] [2488267] [INFO] Worker exiting (pid: 2488267)
+[2025-05-14 05:04:18 +0000] [2488268] [INFO] Worker exiting (pid: 2488268)
+[2025-05-14 05:04:18 +0000] [2487944] [ERROR] Worker (pid:2488268) was sent SIGTERM!
+[2025-05-14 05:36:03,815] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-14 05:36:03,911] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-15 09:52:10,206] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-15 09:52:10,984] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-15 09:52:11,116] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-15 09:52:11,304] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-16 04:59:32,676] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-16 04:59:33,914] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-16 04:59:34,244] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:01:47,566] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:01:47,704] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:01:48,084] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:01:48,266] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:01:48,461] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable
+[2025-05-19 05:36:58,882] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ec2-user/chipsafety/venv/lib64/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ec2-user/chipsafety/app.py", line 24, in upload
+    file = request.files.get["excel_file"]
+TypeError: 'method' object is not subscriptable

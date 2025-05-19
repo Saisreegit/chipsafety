@@ -21,14 +21,21 @@ def index():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files["file"]
+    file = request.files.get["excel_file"]
     if file and file.filename.endswith((".xlsx", ".xls")):
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
-        excel_data[file.filename] = {"path": filepath}
-        xl = pd.ExcelFile(filepath)
-        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xl.sheet_names})
-    return jsonify({"error": "Invalid file format"}), 400
+
+        # Try loading the file
+        try:
+            wb = load_workbook(filepath)
+            sheet = wb.active
+             # You can return or render the sheet data here
+            return f"<h2>Uploaded: {file.filename}</h2><p>First cell: {sheet.cell(1,1).value}</p>"
+        except Exception as e:
+            return f"Error reading Excel file: {e}"
+
+    return "Invalid file or no file uploaded."
 
 @app.route("/edit", methods=["GET"])
 def edit():
