@@ -19,16 +19,19 @@ excel_data = {}  # Cache for uploaded Excel files
 def index():
     return render_template("index.html")
 
-@app.route("/upload", methods=["POST"])
-def upload():
-    file = request.files["file"]
-    if file and file.filename.endswith((".xlsx", ".xls")):
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        file.save(filepath)
-        excel_data[file.filename] = {"path": filepath}
-        xl = pd.ExcelFile(filepath)
-        return jsonify({"message": "Uploaded", "filename": file.filename, "sheets": xl.sheet_names})
-    return jsonify({"error": "Invalid file format"}), 400
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    # Save the file or do processing here
+    file.save(f"./uploads/{file.filename}")
+
+    return jsonify({'message': 'File uploaded successfully'}), 200
 
 @app.route("/edit", methods=["GET"])
 def edit():
