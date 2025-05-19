@@ -37,6 +37,20 @@ def upload():
 
     return "Invalid file or no file uploaded."
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    # Save the file or do processing here
+    file.save(f"./uploads/{file.filename}")
+
+    return jsonify({'message': 'File uploaded successfully'}), 200
+
 @app.route("/edit", methods=["GET"])
 def edit():
     filename = request.args.get("filename")
