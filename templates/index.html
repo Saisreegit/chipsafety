@@ -149,32 +149,60 @@
   <script>
     let fileName = "", currentSheet = "", currentData = [], currentDropdowns = {};
 
-    document.getElementById("uploadForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const file = document.getElementById("fileInput").files[0];
-      const formData = new FormData();
-      formData.append("file", file);
+document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-      fetch("/upload", { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => {
-          fileName = data.filename;
-          const selector = document.getElementById("sheetSelector");
-          selector.innerHTML = "";
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput.files.length === 0) {
+        alert("Please select a file to upload.");
+        return;
+    }
 
-          data.sheets.forEach(sheet => {
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(async res => {
+        const contentType = res.headers.get("content-type");
+        
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Server error ${res.status}: ${errorText}`);
+        }
+
+        if (!contentType || !contentType.includes("application/json")) {
+            const errorText = await res.text();
+            throw new Error("Unexpected server response (not JSON): " + errorText);
+        }
+
+        return res.json();
+    })
+    .then(data => {
+        fileName = data.filename;
+        const selector = document.getElementById("sheetSelector");
+        selector.innerHTML = "";
+
+        data.sheets.forEach(sheet => {
             const opt = document.createElement("option");
             opt.value = sheet;
             opt.textContent = sheet;
             selector.appendChild(opt);
-          });
-
-          document.getElementById("sheetControls").style.display = "block";
-          selector.selectedIndex = 0;
-          loadSheet();
         });
-    });
 
+        document.getElementById("sheetControls").style.display = "block";
+        selector.selectedIndex = 0;
+        loadSheet();  // Make sure loadSheet() is defined
+    })
+    .catch(err => {
+        console.error("Upload failed:", err);
+        alert("Upload failed. Check console for details.");
+    });
+});
+    
     function loadSheet() {
       const sheet = document.getElementById("sheetSelector").value;
       currentSheet = sheet;
