@@ -1,42 +1,67 @@
 import mysql.connector
 import os
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash
 
-# Load environment variables from .env
+# Load environment variables from .env file
 load_dotenv()
 
 def get_db_connection():
-    """Establish a connection to the MySQL database."""
-    connection = mysql.connector.connect(
+    return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
+        database=os.getenv("DB_NAME"),
+        port=int(os.getenv("DB_PORT", 3306))
     )
-    return connection
 
-def insert_excel_data(sheet_name, row_data):
+def insert_excel_data(df):
     """
-    Insert data from the Excel file into the corresponding MySQL table.
+    Create table if not exists and insert rows from the Excel DataFrame (df)
+    into the database table called 'excel_data'.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    Args:
-        sheet_name (str): Name of the sheet (which should match the table name in DB).
-        row_data (tuple): Data from the Excel sheet to insert into the table.
+    # Create table if not exists
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS excel_data (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            attribute VARCHAR(255),
+            value TEXT
+        )
+    """)
+    conn.commit()
+
+    # Insert each row from DataFrame into the table
+    for index, row in df.iterrows():
+        cursor.execute(
+            "INSERT INTO excel_data (attribute, value) VALUES (%s, %s)",
+            (row['attribute'], row['value'])
+        )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_user(username, raw_password):
     """
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    
-    # Generate placeholders based on the number of data columns
-    placeholders = ', '.join(['%s'] * len(row_data))
-    query = f"INSERT INTO `{sheet_name}` VALUES ({placeholders})"
+    Insert a new user into the 'users' table with a hashed password.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    hashed_password = generate_password_hash(raw_password)
 
     try:
-        cursor.execute(query, row_data)
-        connection.commit()
-        print(f"Data inserted into {sheet_name} successfully!")
-    except mysql.connector.Error as e:
-        print(f"Error inserting data into {sheet_name}: {e}")
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (%s, %s)",
+            (username, hashed_password)
+        )
+        conn.commit()
+        print(f"User '{username}' inserted successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error inserting user: {err}")
     finally:
         cursor.close()
-        connection.close()
-
+        conn.close()
