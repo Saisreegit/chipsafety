@@ -38,7 +38,7 @@ def upload():
             return jsonify({
                 "message": f"Uploaded: {file.filename}",
                 "filename": file.filename,
-                "first_cell": sheet.cell(1, 1).value or ""
+                "sheets": sheet_names
             })
         except Exception as e:
             return jsonify({"error": f"Error reading Excel file: {str(e)}"}), 400
