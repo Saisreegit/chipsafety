@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="menu">
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Projects</a></li>
+            <li><a href="#">Training and Certification</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div class="projects">
+            {% for i in range(1, 4) %}
+            <div class="project">
+                <h2>Project {{ i }}</h2>
+                <a href="{{ url_for('work_products') }}" class="arrow">→</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
