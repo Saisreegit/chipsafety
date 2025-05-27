@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f6ff;
+            margin: 0;
+            padding: 0;
+        }
+        .nav {
+            background-color: #007BFF;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .block {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .arrow {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 0.5rem 0.7rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .arrow:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">Work Products</div>
+    <div class="container">
+        <div class="block">
+            <h2>Safe Ops Hub</h2>
+             <a href="#" class="arrow">→</a>
+        </div>
+        <div class="block">
+            <h2>CRMS</h2>
+            <a href="{{ url_for('crms') }}" class="arrow">→</a>
+        </div>
+        <div class="block">
+            <h2>FSRM</h2>
+            <a href="#" class="arrow">→</a>
+        </div>
+        <div class="block">
+            <h2>Team Competency</h2>
+            <a href="#" class="arrow">→</a>
+        </div>
+        <div class="block">
+            Upload Here
+            <a href="{{ url_for('index') }}" class="arrow">→</a>
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/work_product.css') }}">
+        </div>
+    </div>
+</body>
+</html>
