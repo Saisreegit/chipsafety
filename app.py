@@ -13,7 +13,7 @@ from db import get_db_connection
 app = Flask(__name__)
 CORS(app)
 
-app.secret_key = os.urandom(24)  # Secret key for session
+app.secret_key = "yoursecretkey"  # Secret key for session
 
 
 # Dummy credentials (you can later link this to your DB)
@@ -22,7 +22,6 @@ PASSWORD = 'password123'
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -43,38 +42,6 @@ def login():
             error = "Invalid username or password"
 
     return render_template('login.html', error=error)
-
-@app.route('/crms', methods=['GET', 'POST'])
-def crms():
-    message = ""
-    
-    work_products = [
-        {"name": "Change Request ID", "input_type": "text"},
-        {"name": "Start Date", "input_type": "date"},
-        {"name": "Phase", "input_type": "select", "options": ["Initiation", "Planning", "Execution", "Monitoring", "Closure"]},
-        {"name": "End Date", "input_type": "date"},
-        {"name": "Summary of Change", "input_type": "textarea"},
-    ]
-
-    if request.method == 'POST':
-        action = request.form.get('action')
-        submitted_data = {}
-        for i, wp in enumerate(work_products, start=1):
-            value = request.form.get(f'value{i}')
-            submitted_data[wp['name']] = value
-
-        print("Submitted:", submitted_data)
-
-        if action == "Save":
-            message = "Page saved successfully!"
-        elif action == "Next":
-            return redirect(url_for('next_step'))
-
-    return render_template("crms_index.html", work_products=work_products, message=message)
-
-@app.route("/next")
-def next_step():
-    return "<h2>Welcome to the Next Step</h2><p>You have been redirected successfully.</p>"
 
 @app.route('/logout')
 def logout():
