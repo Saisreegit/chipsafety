@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Excel File</title>
+</head>
+<body>
+    <h2>Upload Excel File</h2>
+    
+    <!-- ✅ This is the upload form -->
+   <form action="{{ url_for('choose_file') }}" method="POST" enctype="multipart/form-data">
+    <label for="file">Choose Excel File:</label>
+    <input type="file" name="file" accept=".xlsx, .xls" required>
+    <button type="submit">Upload</button>
+</form>
+
+</body>
+</html>
